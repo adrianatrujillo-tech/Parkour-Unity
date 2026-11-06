@@ -1,0 +1,5 @@
+{
+  "name": "Parkour.Menu.Editor",
+  "references": ["Parkour.Menu", "Unity.ugui", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Parkour.Menu.Tests",
+  "references": ["Parkour.Menu", "Unity.ugui", "Unity.InputSystem"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": ["Editor"]
+}
