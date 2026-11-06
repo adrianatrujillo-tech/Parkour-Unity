@@ -1,0 +1,5 @@
+{
+  "name": "Parkour.Menu",
+  "rootNamespace": "Parkour.Menu",
+  "references": ["Unity.ugui", "Unity.InputSystem"]
+}
