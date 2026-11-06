@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Parkour.Menu
 {
-    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(Button), typeof(CanvasRenderer))]
     public sealed class MenuButtonHighlight : MaskableGraphic, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
     {
         [SerializeField] private MenuPrincipalController controller;
@@ -55,17 +55,19 @@ namespace Parkour.Menu
                 new Vector2(rect.xMax - 35, rect.yMax), new Vector2(rect.xMax, 0),
                 new Vector2(rect.xMax - 35, rect.yMin), new Vector2(rect.xMin + 35, rect.yMin)
             };
-            helper.AddVert(Vector3.zero, new Color(1f, 0.76f, 0.26f, intensity * 0.17f), Vector2.zero);
-            foreach (var point in points) helper.AddVert(point, new Color(1f, 0.76f, 0.26f, intensity * 0.17f), Vector2.zero);
+            var fill = Color.Lerp(new Color(0.055f, 0.075f, 0.10f, 0.88f), new Color(0.43f, 0.31f, 0.09f, 0.95f), intensity);
+            var border = Color.Lerp(new Color(0.86f, 0.78f, 0.59f, 0.9f), new Color(1f, 0.87f, 0.45f, 1f), intensity);
+            helper.AddVert(Vector3.zero, fill, Vector2.zero);
+            foreach (var point in points) helper.AddVert(point, fill, Vector2.zero);
             for (var index = 0; index < points.Length; index++) helper.AddTriangle(0, index + 1, (index + 1) % 6 + 1);
             for (var index = 0; index < points.Length; index++)
             {
                 var next = (index + 1) % points.Length;
                 var start = helper.currentVertCount;
-                helper.AddVert(points[index], new Color(1, 0.85f, 0.4f, intensity), Vector2.zero);
-                helper.AddVert(points[next], new Color(1, 0.85f, 0.4f, intensity), Vector2.zero);
-                helper.AddVert(points[next] * 0.96f, new Color(1, 0.85f, 0.4f, 0), Vector2.zero);
-                helper.AddVert(points[index] * 0.96f, new Color(1, 0.85f, 0.4f, 0), Vector2.zero);
+                helper.AddVert(points[index], border, Vector2.zero);
+                helper.AddVert(points[next], border, Vector2.zero);
+                helper.AddVert(points[next] * 0.96f, Color.clear, Vector2.zero);
+                helper.AddVert(points[index] * 0.96f, Color.clear, Vector2.zero);
                 helper.AddTriangle(start, start + 1, start + 2);
                 helper.AddTriangle(start, start + 2, start + 3);
             }

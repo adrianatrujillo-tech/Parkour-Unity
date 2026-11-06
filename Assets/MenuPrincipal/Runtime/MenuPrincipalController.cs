@@ -19,13 +19,12 @@ namespace Parkour.Menu
         [SerializeField] private AudioClip hoverSound;
         [SerializeField] private AudioClip clickSound;
         [SerializeField] private CanvasGroup mainButtons;
-        [SerializeField] private GameObject levelsPanel;
         [SerializeField] private GameObject optionsPanel;
-        [SerializeField] private GameObject creditsPanel;
         [SerializeField] private GameObject exitPanel;
         [SerializeField] private GameObject messagePanel;
         [SerializeField] private Text message;
         [SerializeField] private Slider volume;
+        [SerializeField] private Text volumeValue;
         [SerializeField] private Toggle musicEnabled;
         [SerializeField] private Toggle fullscreen;
         [SerializeField] private Button playButton;
@@ -58,9 +57,7 @@ namespace Parkour.Menu
             else ShowExit();
         }
 
-        public void ShowLevels() => ShowPanel(levelsPanel);
         public void ShowOptions() => ShowPanel(optionsPanel);
-        public void ShowCredits() => ShowPanel(creditsPanel);
         public void ShowExit() => ShowPanel(exitPanel);
 
         private void ShowPanel(GameObject panel)
@@ -111,6 +108,7 @@ namespace Parkour.Menu
             music.volume = volume.value;
             music.mute = !musicEnabled.isOn;
             effects.volume = volume.value;
+            volumeValue.text = Mathf.RoundToInt(volume.value * 100f) + "%";
         }
 
         public void PlayHover()

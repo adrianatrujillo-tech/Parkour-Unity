@@ -26,7 +26,8 @@ namespace Parkour.MenuEditor
             ConfigureTexture();
             CreateTone("Hover", 660, 0.06f);
             CreateTone("Click", 440, 0.11f);
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font = AssetDatabase.LoadAssetAtPath<Font>(Root + "Fonts/Lato-Regular.ttf");
+            if (font == null) throw new InvalidOperationException("Falta la fuente del menú: Lato-Regular.ttf");
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var camera = new GameObject("Menu Camera", typeof(Camera), typeof(AudioListener)).GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
@@ -41,8 +42,8 @@ namespace Parkour.MenuEditor
             scaler.matchWidthOrHeight = 0.5f;
             var composition = Rect("Composición original 1672x941", canvas.transform, Vector2.zero, new Vector2(1672, 941));
             composition.gameObject.AddComponent<MenuCompositionFit>();
-            var artwork = Rect("Referencia PARKOUR intacta", composition, Vector2.zero, new Vector2(1672, 941)).gameObject.AddComponent<RawImage>();
-            artwork.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Art/ParkourReference.png");
+            var artwork = Rect("Fondo PARKOUR sin botones", composition, Vector2.zero, new Vector2(1672, 941)).gameObject.AddComponent<RawImage>();
+            artwork.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Art/ParkourBackground.png");
             artwork.raycastTarget = false;
             var controller = new GameObject("MenuPrincipal Controller").AddComponent<MenuPrincipalController>();
             var music = controller.gameObject.AddComponent<AudioSource>();
@@ -55,10 +56,10 @@ namespace Parkour.MenuEditor
             var events = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             events.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
             var buttons = Rect("Botones principales", composition, Vector2.zero, new Vector2(1672, 941)).gameObject.AddComponent<CanvasGroup>();
-            var labels = new[] { "Jugar", "Niveles", "Opciones", "Créditos", "Salir" };
-            var centers = new[] { 386f, 485f, 579f, 674f, 770f };
-            UnityAction[] actions = { controller.Play, controller.ShowLevels, controller.ShowOptions, controller.ShowCredits, controller.ShowExit };
-            var main = new Button[5];
+            var labels = new[] { "Jugar", "Opciones", "Salir" };
+            var centers = new[] { 420f, 535f, 650f };
+            UnityAction[] actions = { controller.Play, controller.ShowOptions, controller.ShowExit };
+            var main = new Button[labels.Length];
             for (var index = 0; index < main.Length; index++)
             {
                 var target = Rect(labels[index], buttons.transform, new Vector2(355 - 836, 470.5f - centers[index]), new Vector2(410, 78));
@@ -68,35 +69,34 @@ namespace Parkour.MenuEditor
                 button.transition = Selectable.Transition.None;
                 UnityEventTools.AddPersistentListener(button.onClick, actions[index]);
                 Set(highlight, "controller", controller);
+                Label(labels[index], target, new Vector2(20, 0), new Vector2(310, 76), 34);
+                Label("0" + (index + 1), target, new Vector2(-145, 0), new Vector2(65, 76), 21);
                 main[index] = button;
             }
             for (var index = 0; index < main.Length; index++)
             {
-                var navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = main[(index + 4) % 5], selectOnDown = main[(index + 1) % 5] };
+                var navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = main[(index + main.Length - 1) % main.Length], selectOnDown = main[(index + 1) % main.Length] };
                 main[index].navigation = navigation;
             }
             events.GetComponent<EventSystem>().firstSelectedGameObject = main[0].gameObject;
 
-            var levels = Panel("Niveles", composition);
-            Label("Elige tu siguiente salto", levels.transform, new Vector2(0, 95), new Vector2(570, 60), 25);
-            MakeButton("Nivel 1 · Parkour", levels.transform, new Vector2(0, 0), controller.Play);
-            MakeButton("Volver", levels.transform, new Vector2(0, -170), controller.ClosePanel);
             var options = Panel("Opciones", composition);
-            Label("Volumen", options.transform, new Vector2(-170, 95), new Vector2(210, 50), 25);
-            var volume = MakeSlider(options.transform, new Vector2(65, 95));
+            Label("Ajusta el ambiente de tu aventura", options.transform, new Vector2(0, 140), new Vector2(570, 45), 23);
+            Label("Volumen", options.transform, new Vector2(-170, 72), new Vector2(210, 50), 25);
+            var volumeValue = Label("65%", options.transform, new Vector2(245, 72), new Vector2(80, 50), 23);
+            var volume = MakeSlider(options.transform, new Vector2(45, 72));
             UnityEventTools.AddPersistentListener(volume.onValueChanged, controller.SetVolume);
-            var musicToggle = MakeToggle("Música", options.transform, new Vector2(0, 10));
+            var musicToggle = MakeToggle("Música de fondo", options.transform, new Vector2(0, -10));
             UnityEventTools.AddPersistentListener(musicToggle.onValueChanged, controller.SetMusic);
-            var screenToggle = MakeToggle("Pantalla completa", options.transform, new Vector2(0, -70));
+            var screenToggle = MakeToggle("Pantalla completa", options.transform, new Vector2(0, -85));
             UnityEventTools.AddPersistentListener(screenToggle.onValueChanged, controller.SetFullscreen);
-            MakeButton("Volver", options.transform, new Vector2(0, -180), controller.ClosePanel);
-            var credits = Panel("Créditos", composition);
-            Label("PARKOUR\n\nProyecto de adrianatrujillo-tech\n\nRecursos: consulta los créditos y licencias\nincluidos en el proyecto original.", credits.transform, new Vector2(0, 0), new Vector2(590, 250), 24);
-            MakeButton("Volver", credits.transform, new Vector2(0, -180), controller.ClosePanel);
+            Label("Los cambios se guardan automáticamente", options.transform, new Vector2(0, -155), new Vector2(570, 40), 19);
+            MakeButton("Guardar y volver", options.transform, new Vector2(0, -220), controller.ClosePanel);
             var exit = Panel("Salir", composition);
-            Label("¿Quieres salir del juego?", exit.transform, new Vector2(0, 65), new Vector2(570, 80), 30);
-            MakeButton("Salir del juego", exit.transform, new Vector2(0, -35), controller.Quit);
-            MakeButton("Volver", exit.transform, new Vector2(0, -160), controller.ClosePanel);
+            Label("¿Terminamos por ahora?", exit.transform, new Vector2(0, 100), new Vector2(570, 70), 32);
+            Label("Volverás al escritorio.\nPodrás regresar cuando quieras.", exit.transform, new Vector2(0, 15), new Vector2(570, 95), 24);
+            MakeButton("Seguir jugando", exit.transform, new Vector2(0, -105), controller.ClosePanel);
+            MakeButton("Salir del juego", exit.transform, new Vector2(0, -200), controller.Quit);
             var messagePanel = Panel("Información", composition);
             var message = Label("", messagePanel.transform, new Vector2(0, 25), new Vector2(570, 220), 27);
             MakeButton("Volver", messagePanel.transform, new Vector2(0, -180), controller.ClosePanel);
@@ -106,13 +106,12 @@ namespace Parkour.MenuEditor
             Set(controller, "hoverSound", AssetDatabase.LoadAssetAtPath<AudioClip>(Root + "Audio/Hover.wav"));
             Set(controller, "clickSound", AssetDatabase.LoadAssetAtPath<AudioClip>(Root + "Audio/Click.wav"));
             Set(controller, "mainButtons", buttons);
-            Set(controller, "levelsPanel", levels.transform.parent.gameObject);
             Set(controller, "optionsPanel", options.transform.parent.gameObject);
-            Set(controller, "creditsPanel", credits.transform.parent.gameObject);
             Set(controller, "exitPanel", exit.transform.parent.gameObject);
             Set(controller, "messagePanel", messagePanel.transform.parent.gameObject);
             Set(controller, "message", message);
             Set(controller, "volume", volume);
+            Set(controller, "volumeValue", volumeValue);
             Set(controller, "musicEnabled", musicToggle);
             Set(controller, "fullscreen", screenToggle);
             Set(controller, "playButton", main[0]);
@@ -126,13 +125,17 @@ namespace Parkour.MenuEditor
             var overlay = Rect(title + " Panel", parent, Vector2.zero, new Vector2(1672, 941));
             var dim = overlay.gameObject.AddComponent<Image>();
             dim.color = new Color(0.02f, 0.03f, 0.06f, 0.55f);
-            var box = Rect(title, overlay, new Vector2(280, 0), new Vector2(660, 540));
+            var box = Rect(title, overlay, new Vector2(280, 0), new Vector2(660, 640));
             var image = box.gameObject.AddComponent<Image>();
-            image.color = new Color(0.07f, 0.09f, 0.13f, 0.97f);
+            image.color = new Color(0.035f, 0.065f, 0.09f, 0.97f);
             var outline = box.gameObject.AddComponent<Outline>();
             outline.effectColor = Cream;
             outline.effectDistance = new Vector2(2, -2);
-            Label(title, box, new Vector2(0, 205), new Vector2(570, 70), 42);
+            Label("P A R K O U R", box, new Vector2(0, 275), new Vector2(570, 40), 18);
+            Label(title, box, new Vector2(0, 215), new Vector2(570, 70), 42);
+            var rule = Rect("Separador dorado", box, new Vector2(0, 175), new Vector2(520, 1)).gameObject.AddComponent<Image>();
+            rule.color = new Color(0.86f, 0.78f, 0.59f, 0.6f);
+            rule.raycastTarget = false;
             overlay.gameObject.SetActive(false);
             return box.gameObject;
         }
@@ -180,14 +183,14 @@ namespace Parkour.MenuEditor
 
         private static Slider MakeSlider(Transform parent, Vector2 position)
         {
-            var target = Rect("Volumen", parent, position, new Vector2(300, 44));
+            var target = Rect("Volumen", parent, position, new Vector2(260, 24));
             var background = target.gameObject.AddComponent<Image>();
             background.color = new Color(0.25f, 0.25f, 0.23f);
             var slider = target.gameObject.AddComponent<Slider>();
             var fill = Rect("Fill", target, Vector2.zero, Vector2.zero).gameObject.AddComponent<Image>();
             fill.color = new Color(0.7f, 0.55f, 0.23f);
             slider.fillRect = fill.rectTransform;
-            var handle = Rect("Handle", target, Vector2.zero, new Vector2(22, 0)).gameObject.AddComponent<Image>();
+            var handle = Rect("Handle", target, Vector2.zero, new Vector2(18, 12)).gameObject.AddComponent<Image>();
             handle.color = Cream;
             slider.handleRect = handle.rectTransform;
             slider.targetGraphic = handle;
@@ -219,7 +222,7 @@ namespace Parkour.MenuEditor
 
         private static void ConfigureTexture()
         {
-            var importer = (TextureImporter)AssetImporter.GetAtPath(Root + "Art/ParkourReference.png");
+            var importer = (TextureImporter)AssetImporter.GetAtPath(Root + "Art/ParkourBackground.png");
             importer.textureType = TextureImporterType.Default;
             importer.maxTextureSize = 2048;
             importer.npotScale = TextureImporterNPOTScale.None;
